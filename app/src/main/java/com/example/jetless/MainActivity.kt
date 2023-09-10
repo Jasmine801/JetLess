@@ -28,7 +28,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
+import com.example.jetless.screens.MainScreen
 import com.example.jetless.ui.theme.JetLessTheme
+import org.json.JSONObject
 
 /*import com.meter_alc_rgb*/
 
@@ -38,12 +40,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             JetLessTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    Greeting("London", this)
-                }
+                MainScreen()
             }
         }
     }
@@ -55,24 +52,26 @@ fun Greeting(name: String, context: Context, modifier: Modifier = Modifier) {
         mutableStateOf("Unknown")
     }
     Column(modifier.fillMaxSize()){
-        Box(modifier
-            .fillMaxHeight(0.5f)
-            .fillMaxWidth(),
+        Box(
+            modifier
+                .fillMaxHeight(0.5f)
+                .fillMaxWidth(),
             contentAlignment = Alignment.Center
         ){
-            Text(text = "Temp in $name = ${state.value}")
+            Text(text = "Temp in $name = ${state.value} °C")
         }
-        Box(modifier
-            .fillMaxHeight()
-            .fillMaxWidth(),
+        Box(
+            modifier
+                .fillMaxHeight()
+                .fillMaxWidth(),
             contentAlignment = Alignment.BottomCenter){
             Button( onClick = {
                 getResult(name, state, context)
                 Log.d("MyTag", state.value.toString())
             },
-            modifier
-                .padding(5.dp)
-                .fillMaxWidth()) {
+                modifier
+                    .padding(5.dp)
+                    .fillMaxWidth()) {
 
             }
         }
@@ -91,7 +90,8 @@ private fun getResult(city: String, state: MutableState<String>, context: Contex
         url,
         {
             response ->
-            state.value = response
+            val obj = JSONObject(response)
+            state.value = obj.getJSONObject("current").getString("temp_c")
         },
         {
             error ->
