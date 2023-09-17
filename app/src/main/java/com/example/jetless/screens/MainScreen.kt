@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -35,6 +36,7 @@ import com.example.jetless.ui.theme.invis
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.rememberPagerState
 import androidx.compose.material.TabRowDefaults
+import com.example.jetless.data.WeatherModel
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.pagerTabIndicatorOffset
 import kotlinx.coroutines.launch
@@ -183,8 +185,29 @@ fun TabLayout(){
             modifier = Modifier.weight(1.0f)
         ) {index ->
             LazyColumn(modifier = Modifier.fillMaxSize()){
-                items(15){
-                    ListItem()
+                itemsIndexed(
+                    listOf(
+                        WeatherModel(
+                        "Moscow",
+                        "15:00",
+                        "17°C",
+                        "Sunny",
+                        "//cdn.weatherapi.com/weather/64x64/day/116.png",
+                        "",
+                        "",
+                        ""
+                    ),
+
+                        WeatherModel("Moscow",
+                            "10/09/2023",
+                            "",
+                            "Sunny",
+                            "//cdn.weatherapi.com/weather/64x64/day/116.png",
+                            "17",
+                            "14",
+                            "kmk"))
+                ){
+                    _, item ->  ListItem(item)
                 }
             }
         }

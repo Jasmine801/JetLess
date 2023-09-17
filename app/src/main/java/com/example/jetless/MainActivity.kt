@@ -1,5 +1,6 @@
 package com.example.jetless
 
+import android.app.DownloadManager.Request
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
@@ -38,6 +39,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             JetLessTheme {
+                getData("Moscow", this)
                 Image(
                     painter = painterResource(id = R.drawable.skyscreen),
                     contentDescription = "im1",
@@ -53,37 +55,24 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@Composable
-fun Greeting(name: String, context: Context, modifier: Modifier = Modifier) {
-    val state = remember{
-        mutableStateOf("Unknown")
-    }
-    Column(modifier.fillMaxSize()){
-        Box(
-            modifier
-                .fillMaxHeight(0.5f)
-                .fillMaxWidth(),
-            contentAlignment = Alignment.Center
-        ){
-            Text(text = "Temp in $name = ${state.value} °C")
+fun getData(city: String, context: Context){
+     val url = "https://api.weatherapi.com/v1/forecast.json?key=$API_KEY" +
+             "&q=$city" +
+             "&days=" +
+             "3" +
+             "&aqi=no&alerts=no\n"
+    val queue = Volley.newRequestQueue(context)
+    val sRequest = StringRequest(
+        com.android.volley.Request.Method.GET,
+        url,
+        {
+            responce -> Log.d("MyLog", "Responce: $responce")
+        },
+        {
+            Log.d("MyLog", "VolleyError: $it")
         }
-        Box(
-            modifier
-                .fillMaxHeight()
-                .fillMaxWidth(),
-            contentAlignment = Alignment.BottomCenter){
-            Button( onClick = {
-                getResult(name, state, context)
-                Log.d("MyTag", state.value.toString())
-            },
-                modifier
-                    .padding(5.dp)
-                    .fillMaxWidth()) {
-
-            }
-        }
-    }
-
+    )
+    queue.add(sRequest)
 }
 
 private fun getResult(city: String, state: MutableState<String>, context: Context){
