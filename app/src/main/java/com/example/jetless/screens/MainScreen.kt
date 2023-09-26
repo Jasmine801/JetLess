@@ -36,14 +36,18 @@ import com.example.jetless.ui.theme.invis
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.rememberPagerState
 import androidx.compose.material.TabRowDefaults
+import androidx.compose.runtime.MutableState
 import com.example.jetless.data.WeatherModel
+import com.example.jetless.getWeatherByDays
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.pagerTabIndicatorOffset
 import kotlinx.coroutines.launch
+import org.json.JSONArray
+import org.json.JSONObject
 
-@Preview(showBackground = true)
+
 @Composable
-fun MainCard() {
+fun MainCard(curentDay: MutableState<WeatherModel>) {
     Column(
         modifier = Modifier
             .padding(5.dp)
@@ -70,12 +74,12 @@ fun MainCard() {
                 ){
                     Text(
                         modifier = Modifier.padding(top = 8.dp, start = 8.dp),
-                        text = "10 Sep 2023 11:00",
+                        text = curentDay.value.time,
                         style = TextStyle(fontSize = 15.sp),
                         color = Color.White
                     )
                     AsyncImage(
-                        model = "https://cdn.weatherapi.com/weather/64x64/day/116.png",
+                        model = "https:" + curentDay.value.icon,
                         contentDescription = "im2",
                         modifier = Modifier
                             .size(35.dp)
@@ -83,17 +87,20 @@ fun MainCard() {
                     )
                 }
                 Text(
-                    text = "Moscow",
+                    text = curentDay.value.city,
                     style = TextStyle(fontSize = 24.sp),
                     color = Color.White
                 )
                 Text(
-                    text = "23°C",
+                    text = if(curentDay.value.currentTemp.isNotEmpty())
+                        curentDay.value.currentTemp.toFloat().toInt().toString() + "°C"
+                    else "${curentDay.value.minTemp.toFloat().toInt().toString()} / " +
+                            curentDay.value.maxTemp.toFloat().toInt().toString(),
                     style = TextStyle(fontSize = 65.sp),
                     color = Color.White
                 )
                 Text(
-                    text = "Cloudy",
+                    text = curentDay.value.condition,
                     style = TextStyle(fontSize = 16.sp),
                     color = Color.White
                 )
@@ -112,7 +119,7 @@ fun MainCard() {
 
                     }
                     Text(
-                        text = "10°C/19°C",
+                        text = "${curentDay.value.minTemp}°C/${curentDay.value.maxTemp}°C",
                         style = TextStyle(fontSize = 16.sp),
                         color = Color.White
                     )
@@ -137,7 +144,7 @@ fun MainCard() {
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-fun TabLayout(){
+fun TabLayout(dayList: MutableState<List<WeatherModel>>, currentDay: MutableState<WeatherModel>){
 
     var tabList = listOf("HOURS", "DAYS")
     var pagerState = rememberPagerState()
@@ -184,32 +191,34 @@ fun TabLayout(){
             state = pagerState,
             modifier = Modifier.weight(1.0f)
         ) {index ->
-            LazyColumn(modifier = Modifier.fillMaxSize()){
-                itemsIndexed(
-                    listOf(
-                        WeatherModel(
-                        "Moscow",
-                        "15:00",
-                        "17°C",
-                        "Sunny",
-                        "//cdn.weatherapi.com/weather/64x64/day/116.png",
-                        "",
-                        "",
-                        ""
-                    ),
-
-                        WeatherModel("Moscow",
-                            "10/09/2023",
-                            "",
-                            "Sunny",
-                            "//cdn.weatherapi.com/weather/64x64/day/116.png",
-                            "17",
-                            "14",
-                            "kmk"))
-                ){
-                    _, item ->  ListItem(item)
-                }
+            val list = when(index){
+                0 -> getWeatherByHours(currentDay.value.hours)
+                1 -> dayList.value
+                else -> dayList.value
             }
+            MainList(list, currentDay)
         }
     }
+}
+
+private fun getWeatherByHours(hours: String) : List<WeatherModel>{
+    if(hours.isEmpty()) return listOf()
+    val hoursArray = JSONArray(hours)
+    val list = ArrayList<WeatherModel>()
+    for(i in 0 until hoursArray.length()){
+        val item = hoursArray[i] as JSONObject
+        list.add(
+            WeatherModel(
+                "",
+                item.getString("time"),
+                item.getString("temp_c").toFloat().toInt().toString() + "°C",
+                item.getJSONObject("condition").getString("text"),
+                item.getJSONObject("condition").getString("icon"),
+                "",
+                "",
+                ""
+            )
+        )
+    }
+    return list
 }
